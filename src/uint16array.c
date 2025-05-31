@@ -9,27 +9,25 @@ typedef struct {
     size_t capacity;
 } UInt16Array;
 
-UInt16Array *UInt16Array_Init(const size_t length, const size_t capacity) {
-    UInt16Array *array = malloc(sizeof(UInt16Array));
-    if (!array)
-        return NULL;
-
-    array->items = calloc(capacity, sizeof(uint16_t));
-    if (!array->items) {
-        free(array);
-        return NULL;
+UInt16Array UInt16Array_Init(const size_t length, const size_t capacity) {
+    uint16_t *raw_array = calloc(capacity, sizeof(uint16_t));
+    if (!raw_array) {
+        return (UInt16Array){.items = NULL, .length = 0, .capacity = 0};
     }
 
-    array->length = length;
-    array->capacity = capacity;
-
-    return array;
+    return (UInt16Array){
+        .items = raw_array,
+        .length = length,
+        .capacity = capacity,
+    };
 }
 
 void UInt16Array_Free(UInt16Array *array) {
-    if (array) {
+    if (array && array->items) {
         free(array->items);
-        free(array);
+        array->items = NULL;
+        array->length = 0;
+        array->capacity = 0;
     }
 }
 
