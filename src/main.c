@@ -25,12 +25,15 @@ int main(void) {
         switch (ch) {
         case 'h':
             printw("slide left\n");
+            gs = GameState_slide_and_merge_left(gs);
             break;
         case 'j':
             printw("slide down\n");
+            gs = GameState_slide_and_merge_down(gs);
             break;
         case 'k':
             printw("slide up\n");
+            gs = GameState_slide_and_merge_up(gs);
             break;
         case 'l':
             printw("slide right\n");

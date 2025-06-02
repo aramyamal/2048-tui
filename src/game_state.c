@@ -186,9 +186,22 @@ uint32_t GameState_merge_right(GameState *gs) {
     return score_add;
 }
 
-GameState *GameState_slide_and_merge_right(GameState *gs) {
-    size_t dim = gs->dim;
+void GameState_cleanup_old_states(GameState *gs) {
+    if (!gs || gs->prev_left == 0) {
+        return;
+    }
 
+    GameState *current = gs;
+    for (size_t i = 0; i < gs->prev_left - 1 && current->prev; ++i) {
+        current = current->prev;
+    }
+    if (current->prev) {
+        GameState_destroy(current->prev);
+        current->prev = NULL;
+    }
+}
+
+GameState *GameState_slide_and_merge_right(GameState *gs) {
     GameState *new_gs = GameState_copy(gs);
     new_gs->prev = gs;
 
@@ -202,16 +215,104 @@ GameState *GameState_slide_and_merge_right(GameState *gs) {
     GameState_slide_right(new_gs);
 
     // remove unaccessible previous game states
-    if (new_gs->prev_left > 0) {
-        GameState *current = new_gs;
-        for (size_t i = 0; i < new_gs->prev_left - 1 && current->prev; ++i) {
-            current = current->prev;
-        }
-        if (current->prev) {
-            GameState_destroy(current->prev);
-            current->prev = NULL;
+    GameState_cleanup_old_states(new_gs);
+
+    return new_gs;
+}
+
+void GameState_transpose(GameState *gs) {
+    size_t dim = gs->dim;
+    for (size_t i = 0; i < dim; ++i) {
+        for (size_t j = i + 1; j < dim; ++j) {
+            uint32_t temp = GameState_get(gs, i, j);
+            GameState_set(gs, i, j, GameState_get(gs, j, i));
+            GameState_set(gs, j, i, temp);
         }
     }
+}
+
+void GameState_reverse_rows(GameState *gs) {
+    size_t dim = gs->dim;
+    for (size_t i = 0; i < dim; ++i) {
+        for (size_t j = 0; j < dim / 2; ++j) {
+            uint32_t temp = GameState_get(gs, i, j);
+            GameState_set(gs, i, j, GameState_get(gs, i, dim - 1 - j));
+            GameState_set(gs, i, dim - 1 - j, temp);
+        }
+    }
+}
+
+void GameState_reverse_cols(GameState *gs) {
+    size_t dim = gs->dim;
+    for (size_t j = 0; j < dim; ++j) {
+        for (size_t i = 0; i < dim / 2; ++i) {
+            uint32_t temp = GameState_get(gs, i, j);
+            GameState_set(gs, i, j, GameState_get(gs, i, dim - 1 - j));
+            GameState_set(gs, i, dim - 1 - j, temp);
+        }
+    }
+}
+
+void GameState_rotate90(GameState *gs) {
+    GameState_transpose(gs);
+    GameState_reverse_rows(gs);
+}
+
+void GameState_rotate180(GameState *gs) {
+    GameState_reverse_rows(gs);
+    GameState_reverse_cols(gs);
+}
+
+void GameState_rotate270(GameState *gs) {
+    GameState_reverse_rows(gs);
+    GameState_transpose(gs);
+}
+
+GameState *GameState_slide_and_merge_left(GameState *gs) {
+    GameState *new_gs = GameState_copy(gs);
+    new_gs->prev = gs;
+
+    GameState_rotate180(new_gs);
+    GameState_slide_right(new_gs);
+    new_gs->score += GameState_merge_right(new_gs);
+    GameState_slide_right(new_gs);
+    GameState_rotate180(new_gs);
+
+    // remove unaccessible previous game states
+    GameState_cleanup_old_states(new_gs);
+
+    return new_gs;
+}
+
+GameState *GameState_slide_and_merge_up(GameState *gs) {
+    GameState *new_gs = GameState_copy(gs);
+    new_gs->prev = gs;
+
+    GameState_rotate90(new_gs);
+    GameState_slide_right(new_gs);
+    new_gs->score += GameState_merge_right(new_gs);
+    GameState_slide_right(new_gs);
+    GameState_rotate270(new_gs);
+
+    // remove unaccessible previous game states
+    GameState_cleanup_old_states(new_gs);
+
+    return new_gs;
+}
+
+GameState *GameState_slide_and_merge_down(GameState *gs) {
+    GameState *new_gs = GameState_copy(gs);
+    new_gs->prev = gs;
+
+    GameState_rotate270(new_gs);
+    GameState_slide_right(new_gs);
+    new_gs->score += GameState_merge_right(new_gs);
+    GameState_slide_right(new_gs);
+    GameState_rotate90(new_gs);
+
+    // remove unaccessible previous game states
+    GameState_cleanup_old_states(new_gs);
+
     return new_gs;
 }
 
