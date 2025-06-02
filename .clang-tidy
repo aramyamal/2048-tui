@@ -1,0 +1,21 @@
+---
+Checks: "*,
+        -abseil-*,
+        -altera-*,
+        -android-*,
+        -fuchsia-*,
+        -google-*,
+        -llvm*,
+        -zircon-*,
+        -readability-identifier-length,
+        -bugprone-suspicious-include,
+        -cert-msc30-c,
+        -cert-msc50-c,
+        -cert-msc50-cpp,
+        -cert-msc51-cpp,
+        -cert-msc32-c,
+        -concurrency-mt-unsafe,
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     none
