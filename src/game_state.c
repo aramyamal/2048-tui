@@ -166,8 +166,27 @@ void GameState_slide_right(GameState *gs) {
     }
 }
 
-GameState *GameState_slide_and_merge_right(GameState *gs) {
+uint32_t GameState_merge_right(GameState *gs) {
     uint32_t score_add = 0;
+    size_t dim = gs->dim;
+
+    // merge tiles from right to left
+    for (size_t row = 0; row < dim; ++row) {
+        for (size_t col = dim - 1; col > 0; --col) {
+            uint32_t right_tile = GameState_get(gs, row, col);
+            uint32_t left_tile = GameState_get(gs, row, col - 1);
+            if (right_tile == left_tile && right_tile != 0) {
+                uint32_t merged_value = right_tile * 2;
+                GameState_set(gs, row, col, merged_value);
+                GameState_set(gs, row, col - 1, 0);
+                score_add += merged_value;
+            }
+        }
+    }
+    return score_add;
+}
+
+GameState *GameState_slide_and_merge_right(GameState *gs) {
     size_t dim = gs->dim;
 
     GameState *new_gs = GameState_copy(gs);
@@ -176,23 +195,13 @@ GameState *GameState_slide_and_merge_right(GameState *gs) {
     // slide all tiles
     GameState_slide_right(new_gs);
 
-    // merge tiles from right to left
-    for (size_t row = 0; row < dim; ++row) {
-        for (size_t col = dim - 1; col > 0; --col) {
-            uint32_t right_tile = GameState_get(new_gs, row, col);
-            uint32_t left_tile = GameState_get(new_gs, row, col - 1);
-            if (right_tile == left_tile && right_tile != 0) {
-                uint32_t merged_value = right_tile * 2;
-                GameState_set(new_gs, row, col, merged_value);
-                GameState_set(new_gs, row, col - 1, 0);
-                score_add += merged_value;
-            }
-        }
-    }
+    // merge tiles and add scores
+    new_gs->score += GameState_merge_right(new_gs);
 
     // slide again after merging
     GameState_slide_right(new_gs);
 
+    // remove unaccessible previous game states
     if (new_gs->prev_left > 0) {
         GameState *current = new_gs;
         for (size_t i = 0; i < new_gs->prev_left - 1 && current->prev; ++i) {
@@ -203,9 +212,6 @@ GameState *GameState_slide_and_merge_right(GameState *gs) {
             current->prev = NULL;
         }
     }
-
-    new_gs->score += score_add;
-
     return new_gs;
 }
 
