@@ -15,6 +15,7 @@ Checks: "*,
         -cert-msc51-cpp,
         -cert-msc32-c,
         -concurrency-mt-unsafe,
+        -cert-err33-c,
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

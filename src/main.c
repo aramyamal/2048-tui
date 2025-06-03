@@ -1,8 +1,13 @@
 #include "game_state.c"
+#include <locale.h>
 #include <ncurses.h>
+#include <stdint.h>
 #include <time.h>
 
 int main(void) {
+    // set locale for unicode support
+    setlocale(LC_ALL, "");
+
     // initialize ncurses
     initscr();
     cbreak();             // disable line buffering
@@ -15,7 +20,9 @@ int main(void) {
     // clear screen and print initial state
     clear();
     GameState_print(gs);
-    printw("Press h/j/k/l to choose slide direction, q to quit:\n");
+    printw("                                 k        w        ↑  \n");
+    printw("Choose slide direction with:   h   l,   a s d,   ← ↓ →\n");
+    printw("                                 j                    \n");
     refresh();
 
     int ch = 0;
@@ -24,18 +31,26 @@ int main(void) {
     GameState *new_gs = NULL;
     while (!game_over && (ch = getch()) != 'q') {
         switch (ch) {
+        case KEY_LEFT:
+        case 'a':
         case 'h':
             printw("slide left\n");
             new_gs = GameState_slide_and_merge_left(gs);
             break;
+        case KEY_DOWN:
+        case 's':
         case 'j':
             printw("slide down\n");
             new_gs = GameState_slide_and_merge_down(gs);
             break;
+        case KEY_UP:
+        case 'w':
         case 'k':
             printw("slide up\n");
             new_gs = GameState_slide_and_merge_up(gs);
             break;
+        case KEY_RIGHT:
+        case 'd':
         case 'l':
             printw("slide right\n");
             new_gs = GameState_slide_and_merge_right(gs);
@@ -55,7 +70,6 @@ int main(void) {
         // clear screen and redraw
         clear();
         GameState_print(gs);
-        printw("Press h/j/k/l to choose slide direction, q to quit:\n");
         refresh();
     }
 
