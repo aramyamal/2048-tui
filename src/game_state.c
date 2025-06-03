@@ -19,7 +19,7 @@ struct GameState {
     uint32_t score;
 };
 
-uint32_t GameState_get(GameState *gs, size_t i, size_t j) {
+uint32_t GameState_get(const GameState *gs, size_t i, size_t j) {
     return UInt32Array_get(gs->tiles, (i * gs->dim) + j);
 }
 
@@ -201,9 +201,34 @@ void GameState_cleanup_old_states(GameState *gs) {
     }
 }
 
+bool GameState_equals(const GameState *gs1, const GameState *gs2) {
+    if (!gs1 || !gs2) {
+        return gs1 == gs2;
+    }
+
+    if (gs1->dim != gs2->dim) {
+        return false;
+    }
+
+    for (size_t row = 0; row < gs1->dim; ++row) {
+        for (size_t col = 0; col < gs1->dim; ++col) {
+            if (GameState_get(gs1, row, col) != GameState_get(gs2, row, col)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 GameState *GameState_slide_and_merge_right(GameState *gs) {
+    if (!gs) {
+        return NULL;
+    }
+
     GameState *new_gs = GameState_copy(gs);
-    new_gs->prev = gs;
+    if (!new_gs) {
+        return NULL;
+    }
 
     // slide all tiles
     GameState_slide_right(new_gs);
@@ -213,6 +238,15 @@ GameState *GameState_slide_and_merge_right(GameState *gs) {
 
     // slide again after merging
     GameState_slide_right(new_gs);
+
+    // check if anything changed
+    if (GameState_equals(gs, new_gs)) {
+        GameState_destroy(new_gs);
+        return NULL;
+    }
+
+    // otherwise valid mode, set correct previous chain
+    new_gs->prev = gs;
 
     // remove unaccessible previous game states
     GameState_cleanup_old_states(new_gs);
@@ -269,14 +303,28 @@ void GameState_rotate270(GameState *gs) {
 }
 
 GameState *GameState_slide_and_merge_left(GameState *gs) {
+
+    if (!gs) {
+        return NULL;
+    }
+
     GameState *new_gs = GameState_copy(gs);
-    new_gs->prev = gs;
+    if (!new_gs) {
+        return NULL;
+    }
 
     GameState_rotate180(new_gs);
     GameState_slide_right(new_gs);
     new_gs->score += GameState_merge_right(new_gs);
     GameState_slide_right(new_gs);
     GameState_rotate180(new_gs);
+
+    if (GameState_equals(gs, new_gs)) {
+        GameState_destroy(new_gs);
+        return NULL;
+    }
+
+    new_gs->prev = gs;
 
     // remove unaccessible previous game states
     GameState_cleanup_old_states(new_gs);
@@ -285,14 +333,27 @@ GameState *GameState_slide_and_merge_left(GameState *gs) {
 }
 
 GameState *GameState_slide_and_merge_up(GameState *gs) {
+    if (!gs) {
+        return NULL;
+    }
+
     GameState *new_gs = GameState_copy(gs);
-    new_gs->prev = gs;
+    if (!new_gs) {
+        return NULL;
+    }
 
     GameState_rotate90(new_gs);
     GameState_slide_right(new_gs);
     new_gs->score += GameState_merge_right(new_gs);
     GameState_slide_right(new_gs);
     GameState_rotate270(new_gs);
+
+    if (GameState_equals(gs, new_gs)) {
+        GameState_destroy(new_gs);
+        return NULL;
+    }
+
+    new_gs->prev = gs;
 
     // remove unaccessible previous game states
     GameState_cleanup_old_states(new_gs);
@@ -301,8 +362,14 @@ GameState *GameState_slide_and_merge_up(GameState *gs) {
 }
 
 GameState *GameState_slide_and_merge_down(GameState *gs) {
+    if (!gs) {
+        return NULL;
+    }
+
     GameState *new_gs = GameState_copy(gs);
-    new_gs->prev = gs;
+    if (!new_gs) {
+        return NULL;
+    }
 
     GameState_rotate270(new_gs);
     GameState_slide_right(new_gs);
@@ -310,10 +377,42 @@ GameState *GameState_slide_and_merge_down(GameState *gs) {
     GameState_slide_right(new_gs);
     GameState_rotate90(new_gs);
 
+    if (GameState_equals(gs, new_gs)) {
+        GameState_destroy(new_gs);
+        return NULL;
+    }
+
+    new_gs->prev = gs;
+
     // remove unaccessible previous game states
     GameState_cleanup_old_states(new_gs);
 
     return new_gs;
+}
+
+bool GameState_can_move(GameState *gs) {
+    size_t dim = gs->dim;
+    for (size_t row = 0; row < dim; ++row) {
+        for (size_t col = 0; col < dim; ++col) {
+            uint32_t current = GameState_get(gs, row, col);
+
+            if (current == 0) {
+                return true;
+            }
+
+            // check if current tile can merge with right neighbour
+            if (col < dim - 1 && current == GameState_get(gs, row, col + 1)) {
+                return true;
+            }
+
+            // check if current tile can merge with bottom
+            if (row < dim - 1 && current == GameState_get(gs, row + 1, col)) {
+                return true;
+            }
+        }
+    }
+    // no merges or moves possible
+    return false;
 }
 
 void GameState_print(GameState *gs) {
