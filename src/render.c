@@ -47,7 +47,7 @@ static void ensure_colors_initialized(void) {
         }
     }
     // default for other numbers
-    init_pair(NR_OF_COLORS + 1, -1, -1);
+    init_pair(NR_OF_COLORS + 1, -1, COLOR_WHITE + LIGHT_HUE);
 }
 
 static int pair_for_value(uint32_t value) {
@@ -74,7 +74,15 @@ void GameState_print(GameState *gs) {
     const int cell_w = 7;
     const int cell_h = 3;
 
-    printw("\nScore: %u\tUndos left: %zu\n\n", gs->score, gs->prev_left);
+    printw("\n");
+    printw("╭───────────────────────────────╮\n");
+    printw("│ Score: %-10u", gs->score);
+    if (gs->prev_left != 0) {
+        printw("  Undos: %-3zu │\n", gs->prev_left);
+    } else {
+        printw("             │\n");
+    }
+    printw("╰───────────────────────────────╯\n");
 
     // draw the grid and contents
     for (size_t i = 0; i <= dim; i++) {
@@ -126,7 +134,7 @@ void GameState_print(GameState *gs) {
                     printw("│");
                     uint32_t val = GameState_get(gs, i, j);
 
-                    /* center on the middle content row */
+                    // center on the middle content row
                     if (row == cell_h / 2 && val != 0) {
                         char buf[16];
                         snprintf(buf, sizeof(buf), "%u", val);
@@ -178,7 +186,6 @@ void GameState_print(GameState *gs) {
             }
         }
     }
-    printw("\n");
 }
 
 #endif // RENDER_C

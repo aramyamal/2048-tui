@@ -24,9 +24,16 @@ int main(void) {
     // clear screen and print initial state
     clear();
     GameState_print(gs);
-    printw("                                            w        ↑   \n");
-    printw("Choose slide direction with:   h j k l,   a s d,   ← ↓ →.\n");
-    printw("\nUndo with:                     u, z, space.\n");
+    printw("╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮\n");
+    printw("╎ Choose slide direction with:  ╎\n");
+    printw("╎                               ╎\n");
+    printw("╎               w        ↑      ╎\n");
+    printw("╎  h j k l,   a s d,   ← ↓ →.   ╎\n");
+    printw("╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯\n");
+
+    printw("╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮\n");
+    printw("╎ Undo with:     u, z, space.   ╎\n");
+    printw("╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯\n");
     refresh();
 
     int ch = 0;
