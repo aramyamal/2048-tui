@@ -39,8 +39,11 @@ int main(void) {
     int ch = 0;
     bool game_over = false;
 
+    bool last_move_was_undo = false;
     GameState *new_gs = NULL;
     while (!game_over && (ch = getch()) != 'q') {
+        last_move_was_undo = false;
+
         switch (ch) {
         case KEY_LEFT:
         case 'a':
@@ -66,6 +69,7 @@ int main(void) {
         case 'z':
         case ' ':
             new_gs = GameState_undo(gs);
+            last_move_was_undo = true;
             break;
         default:
             printw("unknown key '%c'\n", ch);
@@ -74,8 +78,10 @@ int main(void) {
 
         // if change occured
         if (new_gs) {
-            game_over =
-                !GameState_add_random(new_gs) || !GameState_can_move(new_gs);
+            if (!last_move_was_undo) {
+                game_over = !GameState_add_random(new_gs) ||
+                            !GameState_can_move(new_gs);
+            }
             gs = new_gs;
         }
 
