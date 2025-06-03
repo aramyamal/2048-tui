@@ -132,8 +132,14 @@ GameState *GameState_copy(GameState *gs) {
         return NULL;
     }
 
+    UInt32Array new_tiles = UInt32Array_copy(gs->tiles);
+    if (!new_tiles.items) {
+        free(copy);
+        return NULL;
+    }
+
     *copy = (GameState){
-        .tiles = UInt32Array_copy(gs->tiles),
+        .tiles = new_tiles,
         .dim = gs->dim,
         .prev_left = gs->prev_left,
         .prev = NULL,
