@@ -1,4 +1,5 @@
 #include "game_state.c"
+#include "render.c"
 #include <locale.h>
 #include <ncurses.h>
 #include <stdint.h>

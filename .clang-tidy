@@ -16,6 +16,8 @@ Checks: "*,
         -cert-msc32-c,
         -concurrency-mt-unsafe,
         -cert-err33-c,
+        -cppcoreguidelines-narrowing-conversions,
+        -bugprone-narrowing-conversions,
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

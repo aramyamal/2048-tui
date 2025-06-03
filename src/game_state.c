@@ -415,34 +415,4 @@ bool GameState_can_move(GameState *gs) {
     return false;
 }
 
-void GameState_print(GameState *gs) {
-    if (!gs) {
-        printw("Game state is NULL\n");
-        return;
-    }
-
-    size_t dim = gs->dim;
-
-    printw("Score: %u\n\n", gs->score);
-
-    for (size_t i = 0; i < dim; i++) {
-        for (size_t j = 0; j < dim; j++) {
-            uint32_t value = GameState_get(gs, i, j);
-            if (value == 0) {
-                printw("[    ]");
-            } else {
-                printw("[%4u]", value);
-            }
-            if (j < dim - 1) {
-                printw(" ");
-            }
-        }
-        printw("\n");
-        if (i < dim - 1) {
-            printw("\n"); // extra space between rows
-        }
-    }
-    printw("\n");
-}
-
 #endif // GAME_STATE_C
