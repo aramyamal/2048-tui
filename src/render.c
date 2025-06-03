@@ -74,7 +74,7 @@ void GameState_print(GameState *gs) {
     const int cell_w = 7;
     const int cell_h = 3;
 
-    printw("Score: %u\n\n", gs->score);
+    printw("\nScore: %u\tUndos left: %zu\n\n", gs->score, gs->prev_left);
 
     // draw the grid and contents
     for (size_t i = 0; i <= dim; i++) {

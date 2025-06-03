@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <time.h>
 
+#define DIMENSION 4
+#define UNDOS 3
+
 int main(void) {
     // set locale for unicode support
     setlocale(LC_ALL, "");
@@ -16,14 +19,14 @@ int main(void) {
     keypad(stdscr, TRUE); // enable special keys
 
     srand(time(NULL));
-    GameState *gs = GameState_create(4);
+    GameState *gs = GameState_create(DIMENSION, UNDOS);
 
     // clear screen and print initial state
     clear();
     GameState_print(gs);
-    printw("                                 k        w        ↑  \n");
-    printw("Choose slide direction with:   h   l,   a s d,   ← ↓ →\n");
-    printw("                                 j                    \n");
+    printw("                                            w        ↑   \n");
+    printw("Choose slide direction with:   h j k l,   a s d,   ← ↓ →.\n");
+    printw("\nUndo with:                     u, z, space.\n");
     refresh();
 
     int ch = 0;
@@ -35,26 +38,27 @@ int main(void) {
         case KEY_LEFT:
         case 'a':
         case 'h':
-            printw("slide left\n");
             new_gs = GameState_slide_and_merge_left(gs);
             break;
         case KEY_DOWN:
         case 's':
         case 'j':
-            printw("slide down\n");
             new_gs = GameState_slide_and_merge_down(gs);
             break;
         case KEY_UP:
         case 'w':
         case 'k':
-            printw("slide up\n");
             new_gs = GameState_slide_and_merge_up(gs);
             break;
         case KEY_RIGHT:
         case 'd':
         case 'l':
-            printw("slide right\n");
             new_gs = GameState_slide_and_merge_right(gs);
+            break;
+        case 'u':
+        case 'z':
+        case ' ':
+            new_gs = GameState_undo(gs);
             break;
         default:
             printw("unknown key '%c'\n", ch);
@@ -80,6 +84,6 @@ int main(void) {
 
     // cleanup ncurses
     endwin();
-    GameState_destroy(gs);
+    GameState_destroy_chain(gs);
     return 0;
 }

@@ -2,7 +2,6 @@
 #define GAME_STATE_C
 
 #include "uint32_array.c"
-#include <ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -74,7 +73,7 @@ bool GameState_add_random(GameState *gs) {
     return true;
 }
 
-GameState *GameState_create(size_t dim) {
+GameState *GameState_create(size_t dim, size_t undos) {
 
     GameState *game_state = malloc(sizeof(GameState));
     if (game_state == NULL) {
@@ -90,7 +89,7 @@ GameState *GameState_create(size_t dim) {
     *game_state = (GameState){
         .tiles = tiles,
         .dim = dim,
-        .prev_left = 3,
+        .prev_left = undos,
         .prev = NULL,
         .score = 0,
     };
@@ -99,7 +98,12 @@ GameState *GameState_create(size_t dim) {
     return game_state;
 }
 
-void GameState_destroy(GameState *gs) {
+void GameState_destroy_single(GameState *gs) {
+    UInt32Array_destroy(&gs->tiles);
+    free(gs);
+}
+
+void GameState_destroy_chain(GameState *gs) {
     // if (gs) {
     //     UInt32Array_destroy(gs->tiles);
     //
@@ -113,8 +117,7 @@ void GameState_destroy(GameState *gs) {
     // better iterative approach
     while (gs != NULL) {
         GameState *prev = gs->prev;
-        UInt32Array_destroy(&gs->tiles);
-        free(gs);
+        GameState_destroy_single(gs);
         gs = prev;
     }
 }
@@ -191,14 +194,31 @@ void GameState_cleanup_old_states(GameState *gs) {
         return;
     }
 
+    size_t remaining = gs->prev_left;
     GameState *current = gs;
-    for (size_t i = 0; i < gs->prev_left - 1 && current->prev; ++i) {
+
+    for (size_t i = 0; i < remaining && current->prev; ++i) {
         current = current->prev;
     }
+
     if (current->prev) {
-        GameState_destroy(current->prev);
+        GameState_destroy_chain(current->prev);
         current->prev = NULL;
     }
+}
+
+GameState *GameState_undo(GameState *gs) {
+    if (!gs || !gs->prev || gs->prev_left == 0) {
+        return NULL;
+    }
+
+    size_t current_prev_left = gs->prev_left;
+    GameState *prev = gs->prev;
+    GameState_destroy_single(gs);
+
+    prev->prev_left = current_prev_left - 1;
+
+    return prev;
 }
 
 bool GameState_equals(const GameState *gs1, const GameState *gs2) {
@@ -241,7 +261,7 @@ GameState *GameState_slide_and_merge_right(GameState *gs) {
 
     // check if anything changed
     if (GameState_equals(gs, new_gs)) {
-        GameState_destroy(new_gs);
+        GameState_destroy_chain(new_gs);
         return NULL;
     }
 
@@ -320,7 +340,7 @@ GameState *GameState_slide_and_merge_left(GameState *gs) {
     GameState_rotate180(new_gs);
 
     if (GameState_equals(gs, new_gs)) {
-        GameState_destroy(new_gs);
+        GameState_destroy_chain(new_gs);
         return NULL;
     }
 
@@ -349,7 +369,7 @@ GameState *GameState_slide_and_merge_up(GameState *gs) {
     GameState_rotate270(new_gs);
 
     if (GameState_equals(gs, new_gs)) {
-        GameState_destroy(new_gs);
+        GameState_destroy_chain(new_gs);
         return NULL;
     }
 
@@ -378,7 +398,7 @@ GameState *GameState_slide_and_merge_down(GameState *gs) {
     GameState_rotate90(new_gs);
 
     if (GameState_equals(gs, new_gs)) {
-        GameState_destroy(new_gs);
+        GameState_destroy_chain(new_gs);
         return NULL;
     }
 
