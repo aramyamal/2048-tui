@@ -17,9 +17,14 @@ static inline UInt32Array UInt32Array_null() {
 }
 
 UInt32Array UInt32Array_create(const size_t length, const size_t capacity) {
+
+    if (length > capacity || capacity == 0) {
+        return UInt32Array_null();
+    }
+
     uint32_t *raw_array = calloc(capacity, sizeof(uint32_t));
     if (!raw_array) {
-        return (UInt32Array){.items = NULL, .length = 0, .capacity = 0};
+        return UInt32Array_null();
     }
 
     return (UInt32Array){
@@ -39,13 +44,13 @@ void UInt32Array_destroy(UInt32Array *array) {
 }
 
 uint32_t UInt32Array_get(const UInt32Array array, size_t index) {
-    if (index < array.length) {
+    if (index < array.length && array.items) {
         return array.items[index];
     }
-    return 0;
+    return UINT32_MAX;
 }
 
-bool UInt32Array_set(const UInt32Array *array, size_t index, uint32_t value) {
+bool UInt32Array_set(UInt32Array *array, size_t index, uint32_t value) {
     if (!array || !array->items || index >= array->length) {
         return false;
     }
