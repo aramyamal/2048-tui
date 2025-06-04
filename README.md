@@ -2,7 +2,7 @@
 
 A simple terminal-based 2048 game written in C that uses the built-in 16-color scheme.
 
-![Game start](screenshots/start-up.png) ![Game in progress](screenshots/in-game.png)
+<img src="screenshots/start-up.png" alt="Game start" width="350"/><img src="screenshots/in-game.png" alt="Game in progress" width="350"/>
 
 ## Dependencies
 
