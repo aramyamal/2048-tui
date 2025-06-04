@@ -38,10 +38,11 @@ int main(void) {
 
     int ch = 0;
     bool game_over = false;
+    bool exit = false;
 
     bool last_move_was_undo = false;
     GameState *new_gs = NULL;
-    while (!game_over && (ch = getch()) != 'q') {
+    while (!exit && (ch = getch()) != 'q') {
         last_move_was_undo = false;
 
         switch (ch) {
@@ -89,14 +90,41 @@ int main(void) {
         clear();
         GameState_print(gs);
         refresh();
-    }
 
-    printw("Game Over!\nPress any key to quit...");
-    refresh();
-    getch(); // wait for final keypress
+        // check for game over after each move
+        if (game_over) {
+            printw("\nGame Over! Press 'q' to quit");
+            char re = 0;
+
+            // if undos still left, allow undo to revocer
+            if (gs->prev_left > 0) {
+                printw(" or 'u/z/space' to undo.\n");
+                do {
+                    re = getch();
+                } while (re != 'q' && re != 'u' && re != 'z' && re != ' ');
+                // if quitting, exit the loop
+                if (re == 'q') {
+                    exit = true;
+                } else { // if undoing, undo and redraw
+                    gs = GameState_undo(gs);
+                    game_over = false;
+                    clear();
+                    GameState_print(gs);
+                    refresh();
+                }
+            } else { // if no undos left, exit game on 'q' keypress
+                printw(".\n");
+                do {
+                    re = getch();
+                } while (re != 'q');
+                exit = true;
+            }
+        }
+    }
 
     // cleanup ncurses
     endwin();
+    // cleanup game state
     GameState_destroy_chain(gs);
     return 0;
 }
