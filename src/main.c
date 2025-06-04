@@ -5,10 +5,54 @@
 #include <stdint.h>
 #include <time.h>
 
-#define DIMENSION 4
-#define UNDOS 3
+#define DEFAULT_DIMENSION 4
+#define DEFAULT_UNDOS 3
+#define BASE_TEN 10
 
-int main(void) {
+// helper to parse positive integer
+int32_t parse_positive(const char *s, int32_t min) {
+    char *end = NULL;
+    int32_t val = strtol(s, &end, BASE_TEN);
+    if (*end != '\0' || val < min) {
+        return -1;
+    }
+    return val;
+}
+
+int main(int32_t argc, char *argv[]) {
+    int dimension = DEFAULT_DIMENSION;
+    int undos = DEFAULT_UNDOS;
+
+    // command line arguments
+    for (size_t i = 1; i < argc; ++i) {
+        if ((strcmp(argv[i], "-d") == 0 ||
+             strcmp(argv[i], "--dimension") == 0) &&
+            i + 1 < argc) {
+            int val = parse_positive(argv[i + 1], 3);
+            if (val == -1) {
+                fprintf(stderr, "Error: Dimension must be an integer > 2\n");
+                return 1;
+            }
+            dimension = val;
+            ++i;
+        } else if ((strcmp(argv[i], "-u") == 0 ||
+                    strcmp(argv[i], "--undos") == 0) &&
+                   i + 1 < argc) {
+            int val = parse_positive(argv[i + 1], 0);
+            if (val == -1) {
+                fprintf(stderr, "Error: Undos must be an integer >= 0\n");
+                return 1;
+            }
+            undos = val;
+            ++i;
+        } else {
+            fprintf(stderr, "Unknown argument: %s\n", argv[i]);
+            fprintf(stderr,
+                    "Usage: %s [-d n | --dimension n] [-u n | --undos n]\n",
+                    argv[0]);
+            return 1;
+        }
+    }
     // set locale for unicode support
     setlocale(LC_ALL, "");
 
@@ -19,7 +63,7 @@ int main(void) {
     keypad(stdscr, TRUE); // enable special keys
 
     srand(time(NULL));
-    GameState *gs = GameState_create(DIMENSION, UNDOS);
+    GameState *gs = GameState_create(dimension, undos);
 
     // clear screen and print initial state
     clear();
@@ -36,7 +80,7 @@ int main(void) {
     printw("╰╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯\n");
     refresh();
 
-    int ch = 0;
+    int32_t ch = 0;
     bool game_over = false;
     bool exit = false;
 
