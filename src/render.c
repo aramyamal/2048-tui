@@ -51,7 +51,7 @@ static void ensure_colors_initialized(void) {
     init_pair(NR_OF_COLORS + 1, -1, COLOR_WHITE + LIGHT_HUE);
 }
 
-static int pair_for_value(uint32_t value) {
+static uint8_t pair_for_value(uint32_t value) {
     if (value == 0) {
         return 0;
     }
@@ -130,7 +130,7 @@ void GameState_print(GameState *gs) {
 
         // draw the cell_h content-rows for each row of tiles
         if (i < dim) {
-            for (int row = 0; row < cell_h; row++) {
+            for (size_t row = 0; row < cell_h; row++) {
                 for (size_t j = 0; j < dim; j++) {
                     printw("│");
                     uint32_t val = GameState_get(gs, i, j);
@@ -139,9 +139,9 @@ void GameState_print(GameState *gs) {
                     if (row == cell_h / 2 && val != 0) {
                         char buf[TILE_STRING_BUF_SIZE];
                         snprintf(buf, sizeof(buf), "%u", val);
-                        int len = strlen(buf);
-                        int padL = (cell_w - len) / 2;
-                        int padR = cell_w - len - padL;
+                        uint8_t len = strlen(buf);
+                        uint8_t padL = (cell_w - len) / 2;
+                        uint8_t padR = cell_w - len - padL;
 
                         int pair = pair_for_value(val);
                         if (pair != 0) {
@@ -163,7 +163,7 @@ void GameState_print(GameState *gs) {
                         }
                     } else {
                         // blank or full-background line
-                        int pair = pair_for_value(val);
+                        uint8_t pair = pair_for_value(val);
                         if (pair != 0) {
                             if (pair <= LIGHT_THRES) {
                                 attron(COLOR_PAIR(pair) | A_REVERSE);
