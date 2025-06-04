@@ -1,6 +1,6 @@
 CC      := clang
 CFLAGS  := -std=c99 -Wall -Werror
-LDFLAGS := -lncurses
+LDFLAGS := -Wl,-z,relro,-z,now -lncurses
 SRC     := src/main.c
 BIN     := 2048-tui
 
