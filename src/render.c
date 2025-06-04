@@ -4,6 +4,7 @@
 #define LIGHT_HUE 8
 #define NR_OF_COLORS 14
 #define LIGHT_THRES 8
+#define TILE_STRING_BUF_SIZE 16
 
 #include "game_state.c"
 #include <ncurses.h>
@@ -136,7 +137,7 @@ void GameState_print(GameState *gs) {
 
                     // center on the middle content row
                     if (row == cell_h / 2 && val != 0) {
-                        char buf[16];
+                        char buf[TILE_STRING_BUF_SIZE];
                         snprintf(buf, sizeof(buf), "%u", val);
                         int len = strlen(buf);
                         int padL = (cell_w - len) / 2;
